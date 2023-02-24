@@ -1,0 +1,1 @@
+Lateressin Telegram botti ilmoittaa jäsenille tulevista MPK koulutuksista.
