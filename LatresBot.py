@@ -19,8 +19,9 @@ res = cur.execute("CREATE TABLE IF NOT EXISTS chats (chat_id INT);")
 res = cur.execute("CREATE TABLE IF NOT EXISTS courses (TapahtumaID INT,Nimi,Ajankohta,notificationSent );")
 
 
-
 application = ApplicationBuilder().token(secretToken).build()
+
+
 
 
 logging.basicConfig(
@@ -28,12 +29,19 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, biip boop")
-
+  
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Commands:\n/start\n/tilaa tilaa kurssit\n/help")
+    await update.message.reply_text("""Komennot:
+/start
+/tilaa Tilaa tiedotteen uusista kursseista
+/peruTilaus Peru tiedotteen
+/help Näyttää tämän viestin""")
+
 
 async def tilaa(update: Update,context: ContextTypes.DEFAULT_TYPE):
 
@@ -61,19 +69,42 @@ async def peruTilaus(update: Update,context: ContextTypes.DEFAULT_TYPE):
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Tilauksesi on peruttu.")   
 
+
 async def sendInfo(context: ContextTypes.DEFAULT_TYPE):
     
-    res = cur.execute("SELECT chat_id FROM chats")
-    iterable_list = res.fetchall()
-    print(iterable_list)
-    for i in iterable_list:
+    res1 = cur.execute("""SELECT TapahtumaID,Nimi,Ajankohta FROM courses WHERE notificationSent = 0 """)
+    courseList = res1.fetchall()
 
-        await application.bot.sendMessage(chat_id=i[0], text="pöö")
+    res2 = cur.execute("SELECT chat_id FROM chats")
+    chatList = res2.fetchall()
+    
+    for i in courseList:
+
+        for j in chatList:
+
+            message = str(i[1])+" "+str(i[2])+"\nhttps://koulutuskalenteri.mpk.fi/Koulutuskalenteri/Tutustu-tarkemmin/id/"+str(i[0]) 
+
+            await application.bot.sendMessage(chat_id=j[0], text=message)
+        cur.execute("UPDATE courses SET notificationSent = 1 WHERE TapahtumaID =?",(i[0],))
+        con.commit()
+        
+
 
 async def getCourses(context: ContextTypes.DEFAULT_TYPE):
-    url = "https://koulutuskalenteri.mpk.fi/Koulutuskalenteri?&type=search&format=json&group=&unit=&unit_id=&sub_unit_id=&organizer_unit_id=&target=&coursetype=&keyword_id=&method=&area=&location=&profile=&status=&nature=&culture=&start=24.02.2023&end=12.09.2023&q=&top=&only_my_events=false&VerkkoKoulutus=false&lisaysAikaleima=false&nayta_Vain_Ilmo_Auki=false"
+    url = "https://koulutuskalenteri.mpk.fi/Koulutuskalenteri?&type=search&format=json&group=&unit=&unit_id=&sub_unit_id=&organizer_unit_id=&target=&coursetype=&keyword_id=&method=&area=&location=&profile=&status=&nature=&culture=&start="+"24.02.2023"+"&end="+"12.09.2023"+"&q=&top=&only_my_events=false&VerkkoKoulutus=false&lisaysAikaleima=false&nayta_Vain_Ilmo_Auki=false"
     
     r = requests.get(url)
+    courses = json.loads(r.text)
+    for i in courses:
+        
+        cur.execute("""SELECT 1 FROM courses WHERE TapahtumaID = ?""",(i["TapahtumaID"],))
+
+        if(cur.fetchone() == None):
+            print("Adding to database")
+            cur.execute("INSERT INTO courses (TapahtumaID,Nimi,Ajankohta,notificationSent) VALUES(?,?,?,0)",(i["TapahtumaID"],i["Nimi"],i["Ajankohta"]))
+            con.commit()
+
+
 
         
 
