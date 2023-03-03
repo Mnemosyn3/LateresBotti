@@ -105,7 +105,7 @@ async def getCourses(context: ContextTypes.DEFAULT_TYPE):
             con.commit()
 
 
-
+ 
         
 
 def main():
