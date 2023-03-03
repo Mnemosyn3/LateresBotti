@@ -82,7 +82,7 @@ async def sendInfo(context: ContextTypes.DEFAULT_TYPE):
 
         for j in chatList:
 
-            message = str(i[1])+" "+str(i[2])+"\nhttps://koulutuskalenteri.mpk.fi/Koulutuskalenteri/Tutustu-tarkemmin/id/"+str(i[0]) 
+            message = str(i[1])+"\n"+str(i[2])+"\n\nhttps://koulutuskalenteri.mpk.fi/Koulutuskalenteri/Tutustu-tarkemmin/id/"+str(i[0]) 
 
             await application.bot.sendMessage(chat_id=j[0], text=message)
         cur.execute("UPDATE courses SET notificationSent = 1 WHERE TapahtumaID =?",(i[0],))
