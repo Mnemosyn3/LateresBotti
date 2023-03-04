@@ -140,7 +140,7 @@ def main():
 
 
 application.job_queue.run_repeating(getCourses,3600)
-application.job_queue.run_repeating(sendInfo,3600)
+application.job_queue.run_repeating(sendInfo,1800)
 
 if __name__ == '__main__':
     main()
