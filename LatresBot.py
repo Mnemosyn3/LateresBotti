@@ -102,20 +102,14 @@ async def getCourses(context: ContextTypes.DEFAULT_TYPE):
         start = str(today.day)+"."+str(today.month)+"."+str(today.year)
         end = str(nextMonth.day)+"."+str(nextMonth.month)+"."+str(nextMonth.year)
         makeQuery(start,end,"false")
+    
         today = today + timedelta(days=30)
         i = i +1
 
     today = datetime.today()
     
     
-    i = 1
-    while(i <= 12):
-        nextMonth = today + timedelta(days = 30)
-        start = str(today.day)+"."+str(today.month)+"."+str(today.year)
-        end = str(nextMonth.day)+"."+str(nextMonth.month)+"."+str(nextMonth.year)
-        makeQuery(start,end,"true")
-        today = today + timedelta(days=30)
-        i = i +1
+    
 
 
 def makeQuery(start,end,online):
