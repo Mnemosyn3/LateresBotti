@@ -1,5 +1,5 @@
 import logging
-from salaisuus import *
+from salaisuus import * #salaisuus.py file contains the secret token that botFather provides when creating a bot. It is stored in variable named secretToken. 
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
@@ -9,6 +9,7 @@ import json
 
 import sqlite3
 
+from datetime import datetime, timedelta
 
 con = sqlite3.connect("kurssit.db")
 
@@ -37,6 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("""Komennot:
+    
 /start
 /tilaa Tilaa tiedotteen uusista kursseista
 /peruTilaus Peru tiedotteen
@@ -91,8 +93,34 @@ async def sendInfo(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def getCourses(context: ContextTypes.DEFAULT_TYPE):
-    url = "https://koulutuskalenteri.mpk.fi/Koulutuskalenteri?&type=search&format=json&group=&unit=&unit_id=&sub_unit_id=&organizer_unit_id=&target=&coursetype=&keyword_id=&method=&area=&location=&profile=&status=&nature=&culture=&start="+"24.02.2023"+"&end="+"12.09.2023"+"&q=&top=&only_my_events=false&VerkkoKoulutus=false&lisaysAikaleima=false&nayta_Vain_Ilmo_Auki=false"
+    today = datetime.today()
     
+    
+    i = 1
+    while(i <= 12):
+        nextMonth = today + timedelta(days = 30)
+        start = str(today.day)+"."+str(today.month)+"."+str(today.year)
+        end = str(nextMonth.day)+"."+str(nextMonth.month)+"."+str(nextMonth.year)
+        makeQuery(start,end,"false")
+        today = today + timedelta(days=30)
+        i = i +1
+
+    today = datetime.today()
+    
+    
+    i = 1
+    while(i <= 12):
+        nextMonth = today + timedelta(days = 30)
+        start = str(today.day)+"."+str(today.month)+"."+str(today.year)
+        end = str(nextMonth.day)+"."+str(nextMonth.month)+"."+str(nextMonth.year)
+        makeQuery(start,end,"true")
+        today = today + timedelta(days=30)
+        i = i +1
+
+
+def makeQuery(start,end,online):
+    url = "https://koulutuskalenteri.mpk.fi/Koulutuskalenteri?&type=search&format=json&group=&unit=&unit_id=&sub_unit_id=&organizer_unit_id=&target=&coursetype=&keyword_id=&method=&area=&location=&profile=&status=&nature=&culture=&start="+start+"&end="+end+"&q=&top=&only_my_events=false&VerkkoKoulutus="+online+"&lisaysAikaleima=false&nayta_Vain_Ilmo_Auki=false"
+    print(url)
     r = requests.get(url)
     courses = json.loads(r.text)
     for i in courses:
@@ -103,8 +131,6 @@ async def getCourses(context: ContextTypes.DEFAULT_TYPE):
             print("Adding to database")
             cur.execute("INSERT INTO courses (TapahtumaID,Nimi,Ajankohta,notificationSent) VALUES(?,?,?,0)",(i["TapahtumaID"],i["Nimi"],i["Ajankohta"]))
             con.commit()
-
-
  
         
 
@@ -118,8 +144,9 @@ def main():
    
     application.run_polling()
 
-application.job_queue.run_repeating(sendInfo,10)
-application.job_queue.run_repeating(getCourses,10)
+
+application.job_queue.run_repeating(getCourses,3600)
+application.job_queue.run_repeating(sendInfo,3600)
 
 if __name__ == '__main__':
     main()
