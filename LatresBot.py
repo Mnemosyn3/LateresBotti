@@ -11,6 +11,8 @@ import sqlite3
 
 from datetime import datetime, timedelta
 
+import asyncio
+
 con = sqlite3.connect("kurssit.db")
 
 cur = con.cursor()
@@ -93,19 +95,19 @@ async def sendInfo(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def getCourses(context: ContextTypes.DEFAULT_TYPE):
-    today = datetime.today()
+    today = datetime.today() + timedelta(days = 180)
     
     
     i = 1
-    while(i <= 12):
-        nextMonth = today + timedelta(days = 30)
+    while(i <= 80):
+        nextMonth = today + timedelta(days = 7)
         start = str(today.day)+"."+str(today.month)+"."+str(today.year)
         end = str(nextMonth.day)+"."+str(nextMonth.month)+"."+str(nextMonth.year)
         makeQuery(start,end,"false")
     
-        today = today + timedelta(days=30)
+        today = today + timedelta(days=7)
         i = i +1
-
+        await asyncio.sleep(2)
     today = datetime.today()
     
     
@@ -114,7 +116,7 @@ async def getCourses(context: ContextTypes.DEFAULT_TYPE):
 
 def makeQuery(start,end,online):
     url = "https://koulutuskalenteri.mpk.fi/Koulutuskalenteri?&type=search&format=json&group=&unit=&unit_id=&sub_unit_id=&organizer_unit_id=&target=&coursetype=&keyword_id=&method=&area=&location=&profile=&status=&nature=&culture=&start="+start+"&end="+end+"&q=&top=&only_my_events=false&VerkkoKoulutus="+online+"&lisaysAikaleima=false&nayta_Vain_Ilmo_Auki=false"
-    print(url)
+    #print(url)
     r = requests.get(url)
     courses = json.loads(r.text)
     for i in courses:
