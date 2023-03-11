@@ -5,6 +5,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 import requests
+
 import json
 
 import sqlite3
@@ -85,8 +86,12 @@ async def sendInfo(context: ContextTypes.DEFAULT_TYPE):
     for i in courseList:
 
         for j in chatList:
+            r = requests.get("https://koulutuskalenteri.mpk.fi/Koulutuskalenteri?&type=search&id="+str(i[0])+"&culture=")
 
-            message = str(i[1])+"\n"+str(i[2])+"\n\nhttps://koulutuskalenteri.mpk.fi/Koulutuskalenteri/Tutustu-tarkemmin/id/"+str(i[0]) 
+            page = r.text
+            registration =page[716:751]
+
+            message = str(i[1])+"\n"+str(i[2])+"\nIlmoittautuminen: "+registration+"\n\nhttps://koulutuskalenteri.mpk.fi/Koulutuskalenteri/Tutustu-tarkemmin/id/"+str(i[0]) 
 
             await application.bot.sendMessage(chat_id=j[0], text=message)
         cur.execute("UPDATE courses SET notificationSent = 1 WHERE TapahtumaID =?",(i[0],))
@@ -142,7 +147,7 @@ def main():
 
 
 application.job_queue.run_repeating(getCourses,3600)
-application.job_queue.run_repeating(sendInfo,1800)
+application.job_queue.run_repeating(sendInfo,30)
 
 if __name__ == '__main__':
     main()
